@@ -1,0 +1,30 @@
+{
+  "name": "still_glitch_1",
+  "version": "1.0.0",
+  "description": "One of two node servers displaying glitchy images for PCC art installation",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/renee-radix/capstone_still_image_glitch_1.git"
+  },
+  "keywords": [
+    "glitch",
+    "images",
+    "P5.js"
+  ],
+  "author": "Renee Radix",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/renee-radix/capstone_still_image_glitch_1/issues"
+  },
+  "homepage": "https://github.com/renee-radix/capstone_still_image_glitch_1#readme",
+  "dependencies": {
+    "express": "^5.1.0",
+    "http": "^0.0.1-security",
+    "osc": "^2.4.5",
+    "socket.io": "^4.8.1"
+  }
+}

@@ -8,17 +8,29 @@ let imgGarbage2;
 
 // currentImg is the image file that we're using, this changes as the night progresses more or less randomly
 let currentImg;
+let subversiveImg;
 
-
+//Glitching variables
 let maxXChange = 100; //this number can be ramped up and down to make more or less glitching
 let maxYChange = 5;
 let hFactor = 20;
 let inverted = false;
 let glitching = false;
-
 let streakNum = 14;
 
+//Variable for sockets
 var socket;
+
+//Variable for "strobe" effect
+let flashGlitch = false;
+let flashGlitchSequence = 0;
+let blockNum = 10;
+let screenBlocking = false;
+
+//variables for the timing of random image changes
+let time;
+let prevTime = 0;
+let interval = 10000;
 
 //Loading all our images
 function preload() {
@@ -54,31 +66,69 @@ function setup() {
 	imgGarbage2.resize(width,height);
 	imgGarbage2.filter(POSTERIZE, 5);
 
-	//socket connection code, needs fixing (maybe code in .html file is fucked?)
+	//socket connection code, doensn't work unless node server is running 
 	//socket = io.connect('http://localhost:1312');
 
 	//function that takes the message from the node server
 	//socket.on('sketch1', glitch);
-
-  currentImg = imgTang; //arbitrary
+	
+	//arbitrary, just need to set something here
+	currentImg = imgTang; 
+	subversiveImg = imgGarbage;
 }
 
 function draw() {
-  if (glitching == true){
-    for (let i = 0; i < streakNum; i++) { //dist(pmouseX, pmouseY, mouseX, mouseY) * 0.04; i++) {
-      drawStreak()
+  
+  //Code to randomize image
+  time = millis();
+  if((time - prevTime) >= interval){
+    prevTime = time;
+    let randNum = random(10);
+    if(randNum > 3){
+      randomizeImg();
+	  console.log("Randomizing");
     }
+  }
+  
+  //Glitch streak code
+  if (glitching == true && flashGlitch == false){
+    for (let i = 0; i < streakNum; i++) { //dist(pmouseX, pmouseY, mouseX, mouseY) * 0.04; i++) {
+      drawStreak(currentImg);
+		}
 	}
-  if (glitching == false){
+
+	if (glitching == true && flashGlitch == true){
+		for (let i = 0; i < streakNum; i++) {
+			let randNum = round(random(5));
+			if(i % randNum == 0){
+				drawStreak(subversiveImg);
+			}else{
+				drawStreak(currentImg);
+			}	
+		}
+	}
+
+  if (glitching == false && flashGlitch == false){
     background(currentImg);
 	let rand = random(100);
 	if(rand < 10){
-	drawStreak();
+	drawStreak(currentImg);
 	}
   }
+	
+  //Flash glitch code
+  if (flashGlitch == true){
+	flashGlitchGo();
+  }
+
+  if (screenBlocking == true){
+	screenBlocks();
+  }
+  
+
 }
 
-function drawStreak() {
+function drawStreak(ourImg) {
 	let y = floor(random(height));
 	let h = floor(random(hFactor, hFactor + 10)); 
 	let xChange = floor(random(-maxXChange, maxXChange));
@@ -88,13 +138,12 @@ function drawStreak() {
 	
 	
 	
-	image(currentImg, xChange, -maxYChange + y + yChange, currentImg.width, h, 0, y, currentImg.width, h);
+	image(ourImg, xChange, -maxYChange + y + yChange, ourImg.width, h, 0, y, ourImg.width, h);
 	//copy(img, 0, y, img.width, h, xChange - maxXChange, -maxYChange + y + yChange, img.width, h);
 }
 
-function mouseClicked(){ 
-  //this will be hooked up to a timer function so it happens automatically
-  randomizeImg();
+function mouseClicked() {
+	glitching = !glitching;
 }
 
 function keyPressed() {
@@ -116,6 +165,13 @@ function keyPressed() {
 	if (key == 'l'){
 		streakNum++;
 	}
+	
+	//This would be if a certain RFID tag is scanned, key press function is just filling the void currently
+	if (key == 'g'){
+		flashGlitch = !flashGlitch;
+		console.log("Flash glitch");
+	}
+
 }
 
 function glitch(data){
@@ -129,20 +185,61 @@ function randomizeImg(){
 	//if I want to I could have random with no repeats but I don't know if it's worth the effort
   if (randomNum == 4){
     currentImg = imgBattle;
+	subversiveImg = imgGarbage;
   }else{
     if (randomNum == 1){
       currentImg = imgShuttle
+	  subversiveImg = imgGarbage;
     }else{
       if(randomNum == 2){
         currentImg = imgTang;
+		subversiveImg = imgGarbage2;
       }else{
         if (randomNum == 3){
           currentImg = imgVenus;
+		  subversiveImg = imgGarbage2;
         }
       }
     }
   }
 }
+
+function flashGlitchGo(){
+	//this might be more effective with pixel mixing, maybe having the pixels blend in and out of each other like in that processing sketch
+	let randNum = round(random(2, 4));
+	flashGlitchSequence = flashGlitchSequence + randNum;
+	if ((flashGlitchSequence % 2) == 0){
+		screenBlocking = false;
+		background(subversiveImg);
+	}else if ((flashGlitchSequence % 3) == 0) {
+		screenBlocking = true;
+	} else {
+		background(currentImg);
+	}
+}
+		//have it so that sometimes we just get random colored rectangles  
+	
+function screenBlocks(){
+	noStroke();
+	fill(0);
+	rect(0, 0, width, height);
+	for (let i = 0; i <= blockNum; i++){
+		let x = random(width);
+		let y = random(height);
+		let xLoc = random(width);
+		let yLoc = random(height);
+		fill(random(255), random(255), random(255));
+		rect(xLoc, yLoc, x, y);
+	}
+}
+
+	/*Each time it cycles through the code
+	add a random number between 2 and 4 to our random number
+	do a modulo operation 
+	if it's even display garbage images
+	if it's odd keep with current image
+
+	*/
 //Part of my vision is having the garbage pictures only appear as a part of glitching
 //So the above function can be set up to work on a millis timer, so like every X seconds there's a random chance of an image changing and the timer resets
 

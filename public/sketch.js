@@ -69,8 +69,10 @@ function setup() {
 	//socket connection code, doensn't work unless node server is running 
 	//socket = io.connect('http://localhost:1312');
 
-	//function that takes the message from the node server
-	//socket.on('sketch1', glitch);
+	//function that takes the message from the node server and runs a function depending on what comes in (do the functions need to have parentheses?)
+	//socket.on('sketch1Glitch', glitch); // For this one specifically we need to have a cooldown timer where the message to unglitch is sent, either in arduino or node
+	//socket.on('sketch1Flash', flashGlitchActivate); //flips a boolean
+	//socket.on('sketch1IncreaseStreak', incrementStreak); //increments streaking
 	
 	//arbitrary, just need to set something here
 	currentImg = imgTang; 
@@ -142,8 +144,9 @@ function drawStreak(ourImg) {
 	//copy(img, 0, y, img.width, h, xChange - maxXChange, -maxYChange + y + yChange, img.width, h);
 }
 
+//This function is going to be superfluous once the socket/osc connection is set up but it's cool to have it here for debugging
 function mouseClicked() {
-	glitching = !glitching;
+	glitch(666);
 }
 
 function keyPressed() {
@@ -174,9 +177,14 @@ function keyPressed() {
 
 }
 
-function glitch(data){
+//These functions are mostly designed to accept triggers from node server and flip booleans. The meaty code is run in the main draw loop
+function glitch(data){ //runs when specific osc code comes in or mouse is clicked
 	glitching = !glitching;
 	console.log(data.note + " " + data.vel);
+}
+
+function flashGlitchActivate(){
+	flashGlitch = true;
 }
 
 function randomizeImg(){
@@ -217,7 +225,6 @@ function flashGlitchGo(){
 		background(currentImg);
 	}
 }
-		//have it so that sometimes we just get random colored rectangles  
 	
 function screenBlocks(){
 	noStroke();
@@ -242,10 +249,6 @@ function screenBlocks(){
 	*/
 //Part of my vision is having the garbage pictures only appear as a part of glitching
 //So the above function can be set up to work on a millis timer, so like every X seconds there's a random chance of an image changing and the timer resets
-
-//function mouseClicked() {
-//  glitching = !glitching;
-//}
 
 // have glitching parameters be changed with CC's? That would also be emmitted from the server side
 

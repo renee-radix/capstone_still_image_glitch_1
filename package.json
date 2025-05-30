@@ -24,6 +24,7 @@
   "dependencies": {
     "express": "^5.1.0",
     "http": "^0.0.1-security",
+    "live-server": "^1.2.2",
     "osc": "^2.4.5",
     "socket.io": "^4.8.1"
   }

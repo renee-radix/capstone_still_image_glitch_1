@@ -36,7 +36,7 @@ let glitchCooldownInterval; //randomly set when a glitch trigger is sent
 let glitchCooldownTimer; //This is fixed at a time when the trigger is sent and then it flips back around when it 
 let flashCooldownInterval; //also 
 let flashCooldownTimer;
-
+let streakCooldownTimer;
 
 
 //Loading all our images
@@ -79,10 +79,7 @@ function setup() {
 	//function that takes the message from the node server and runs a function depending on what comes in (do the functions need to have parentheses?)
 	socket.on('glitch', glitch); // For this one specifically we need to have a cooldown timer where the message to unglitch is sent, either in arduino or node
 	socket.on('flash', flashGlitchActivate); //flips a boolean
-	socket.on('increaseStreak', incrementStreak); //increments streaking
-	socket.on('decreaseStreak', decrementStreak);
-	socket.on('randomizeStreak', randomizeStreak);
-
+	
 	//arbitrary, just need to set something here
 	currentImg = imgTang; 
 	subversiveImg = imgGarbage;
@@ -91,15 +88,26 @@ function setup() {
 function draw() {
   
   //Code to randomize image
-  time = millis();
-  if((time - prevTime) >= interval){
-    prevTime = time;
-    let randNum = random(10);
-    if(randNum > 3){
-      randomizeImg();
-	  console.log("Randomizing");
-    }
-  }
+	time = millis();
+	if((time - prevTime) >= interval){
+		prevTime = time;
+		let randNum = random(10);
+		if(randNum > 3.3){
+			randomizeImg();
+			console.log("Randomizing");
+			}
+	if(randNum < 3.3){
+			incrementStreak();
+		}else{
+			if(randNum < 6.6 && randNum > 3.3){
+				decrementStreak();
+			}else{
+				if(randNum > 6.6){
+					randomizeStreak();
+				}
+			}
+		}
+	}
   
   //Glitch streak code
   if (glitching == true && flashGlitch == false){
@@ -163,7 +171,7 @@ function drawStreak(ourImg) {
 	//copy(img, 0, y, img.width, h, xChange - maxXChange, -maxYChange + y + yChange, img.width, h);
 }
 
-//This function is going to be superfluous once the socket/osc connection is set up but it's cool to have it here for debugging
+/* For debugging, uncomment if desired
 function mouseClicked() {
 	glitch();
 }
@@ -195,7 +203,7 @@ function keyPressed() {
 	}
 
 }
-
+*/
 //These functions are mostly designed to accept triggers from node server and flip booleans. The meaty code is run in the main draw loop
 function glitch(){ //runs when specific osc code comes in or mouse is clicked
 	if (glitching == false){ //code does nothing if glitching is already happening
@@ -266,6 +274,7 @@ function screenBlocks(){
 	}
 }
 
+//Currently these functions are run randomly at regular intervals
 function incrementStreak(){
 	maxXChange = maxXChange + random(20);
 		if(hFactor > 5){
